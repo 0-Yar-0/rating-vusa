@@ -10,7 +10,10 @@ services:
     repo: <your-github-repo-url>
     branch: main
     buildCommand: npm install
-    startCommand: npm start
+    startCommand: npm run start:prod
+    envVars:
+      - key: AUTO_DB_PUSH
+        value: 'true'
     envVars:
       - key: DATABASE_URL
         value: <your-postgres-connection-string>

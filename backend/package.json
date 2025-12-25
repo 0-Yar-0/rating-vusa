@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "nodemon --watch src --exec node src/index.js",
     "start": "node src/index.js",
+    "start:prod": "npx prisma generate && node src/start.js",
     "test": "NODE_ENV=test jest --runInBand",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev --name init"
