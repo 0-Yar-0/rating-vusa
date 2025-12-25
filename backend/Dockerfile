@@ -1,26 +1,36 @@
 # Backend Dockerfile
-# Use Debian-based node image to ensure OpenSSL and native libraries are available for Prisma
-FROM node:18-bullseye-slim
+# Multi-stage build using Ubuntu base and NodeSource for Node 18.
+# This avoids relying on docker image mirrors and ensures native libs (OpenSSL) are present for Prisma.
 
-WORKDIR /app
-
-# Install build dependencies required by some native modules and ensure SSL libs are present
+FROM ubuntu:22.04 AS builder
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential python3 ca-certificates \
+    curl ca-certificates gnupg build-essential python3 python3-dev libssl-dev \
   && rm -rf /var/lib/apt/lists/*
 
-# Install dependencies (including prisma CLI for migrations during build)
+# Install Node 18 from NodeSource
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && apt-get install -y nodejs && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
 COPY package*.json ./
-# Use npm install to ensure devDependencies (like prisma CLI) are available during image build.
-# If you prefer reproducible installs, add a package-lock.json and switch back to `npm ci`.
-RUN npm install --silent || npm install --production --silent
+# Install all deps (including dev deps needed for prisma CLI).
+RUN npm ci --silent
 
 COPY . .
-
-# Generate Prisma client
+# Generate Prisma client (if present)
 RUN npx prisma generate || true
+# Remove dev dependencies to keep production image smaller
+RUN npm prune --production --silent
 
+FROM ubuntu:22.04 AS production
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl ca-certificates libssl-dev \
+  && rm -rf /var/lib/apt/lists/*
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && apt-get install -y nodejs && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY --from=builder /app /app
 ENV NODE_ENV=production
 EXPOSE 4000
-
 CMD ["npm", "run", "start:prod"]
