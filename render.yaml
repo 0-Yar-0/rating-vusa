@@ -1,9 +1,6 @@
 # Render configuration for rating-university project
-# This file defines the backend web service, frontend static site, and a managed Postgres DB.
+# This file defines the backend web service and frontend static site.
 # Update repo/branch values and secret placeholders before using.
-
-previews:
-  generation: automatic
 
 services:
   - type: web
@@ -13,7 +10,7 @@ services:
     rootDir: backend
     branch: main
     region: frankfurt
-    plan: free
+    plan: starter
     buildCommand: npm install
     healthCheckPath: /health
     envVars:
@@ -38,7 +35,7 @@ services:
     repo: https://github.com/0-Yar-0/rating-vusa
     rootDir: rating-university-web
     branch: main
-    plan: free
+    plan: starter
     buildCommand: npm install && npm run build
     staticPublishPath: dist
     envVars:
