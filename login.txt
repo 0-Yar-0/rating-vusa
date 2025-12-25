@@ -1,0 +1,9 @@
+логин: admin@email.ru
+пароль: adminpass
+
+https://rating-university.onrender.com/swagger-ui/index.html#
+https://github.com/speed320/rating-university-web.git
+
+
+Cave
+Cave@gmail.com

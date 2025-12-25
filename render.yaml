@@ -1,0 +1,37 @@
+# Template render.yaml — replace placeholders before using
+services:
+  - type: web
+    name: rating-university-backend
+    env: node
+    region: frankfurt
+    plan: free
+    instanceSize: "starter"
+    repo: <your-github-repo-url>
+    branch: main
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: DATABASE_URL
+        value: <your-postgres-connection-string>
+      - key: SESSION_SECRET
+        value: <secure-secret>
+      - key: CLIENT_ORIGIN
+        value: https://<your-frontend>.onrender.com
+      - key: COOKIE_SAME_SITE
+        value: none
+      - key: COOKIE_SECURE
+        value: 'true'
+
+  - type: static
+    name: rating-university-frontend
+    env: node
+    region: frankfurt
+    plan: free
+    instanceSize: "starter"
+    repo: <your-github-repo-url>
+    branch: main
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_BASE
+        value: https://<your-backend>.onrender.com
