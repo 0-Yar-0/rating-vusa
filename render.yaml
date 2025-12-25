@@ -14,7 +14,6 @@ services:
     envVars:
       - key: AUTO_DB_PUSH
         value: 'true'
-    envVars:
       - key: DATABASE_URL
         value: <your-postgres-connection-string>
       - key: SESSION_SECRET
