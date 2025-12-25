@@ -35,7 +35,8 @@ services:
       - key: NODE_ENV
         value: production
 
-  - type: static_site
+  - type: web
+    runtime: static
     name: rating-university-frontend
     repo: <your-github-repo-url>
     rootDir: rating-university-web
