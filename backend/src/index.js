@@ -88,6 +88,14 @@ app.use(sessionMiddleware);
 
 app.use('/api/auth', authRoutes);
 
+app.get('/', (req, res) => {
+  const frontend = process.env.CLIENT_ORIGIN || '';
+  if (frontend) {
+    return res.redirect(frontend);
+  }
+  return res.send(`<html><body><h1>Rating University Backend</h1><p>Service is running.</p><p>Endpoints: <a href="/health">/health</a>, <a href="/api/auth">/api/auth</a></p></body></html>`);
+});
+
 app.get('/health', (req, res) => res.json({ ok: true }));
 
 if (require.main === module) {
