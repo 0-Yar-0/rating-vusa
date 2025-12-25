@@ -9,13 +9,12 @@ services:
   - type: web
     runtime: docker
     name: rating-university-backend
-    repo: <your-github-repo-url>
+    repo: https://github.com/0-Yar-0/rating-vusa
     rootDir: backend
     branch: main
     region: frankfurt
     plan: free
     buildCommand: npm install
-    startCommand: npm run start:prod
     healthCheckPath: /health
     envVars:
       - key: AUTO_DB_PUSH
@@ -38,10 +37,9 @@ services:
   - type: web
     runtime: static
     name: rating-university-frontend
-    repo: <your-github-repo-url>
+    repo: https://github.com/0-Yar-0/rating-vusa
     rootDir: rating-university-web
     branch: main
-    region: frankfurt
     plan: free
     buildCommand: npm install && npm run build
     staticPublishPath: dist
