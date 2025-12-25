@@ -1,25 +1,33 @@
-# Template render.yaml — replace placeholders before using
+# Render configuration for rating-university project
+# This file defines the backend web service, frontend static site, and a managed Postgres DB.
+# Update repo/branch values and secret placeholders before using.
+
+previews:
+  generation: automatic
+
 services:
   - type: web
+    runtime: docker
     name: rating-university-backend
-    env: node
-    root: backend
+    repo: <your-github-repo-url>
+    rootDir: backend
+    branch: main
     region: frankfurt
     plan: free
-    instanceSize: "starter"
-    repo: <your-github-repo-url>
-    branch: main
     buildCommand: npm install
     startCommand: npm run start:prod
+    healthCheckPath: /health
     envVars:
       - key: AUTO_DB_PUSH
-        value: 'true'
+        value: 'true'     # For first deployment; switch to AUTO_MIGRATE after committing migrations
       - key: DATABASE_URL
-        fromDatabase: rating-university-db
+        fromDatabase:
+          name: rating-university-db
+          property: connectionString
       - key: SESSION_SECRET
-        value: <secure-secret>
+        generateValue: true
       - key: CLIENT_ORIGIN
-        value: https://<your-frontend>.onrender.com
+        value: https://rating-university-frontend.onrender.com
       - key: COOKIE_SAME_SITE
         value: none
       - key: COOKIE_SECURE
@@ -27,25 +35,24 @@ services:
       - key: NODE_ENV
         value: production
 
-
   - type: static_site
     name: rating-university-frontend
-    root: rating-university-web
+    repo: <your-github-repo-url>
+    rootDir: rating-university-web
+    branch: main
     region: frankfurt
     plan: free
-    instanceSize: "starter"
-    repo: <your-github-repo-url>
-    branch: main
     buildCommand: npm install && npm run build
     staticPublishPath: dist
     envVars:
       - key: VITE_API_BASE
-        value: https://<your-backend>.onrender.com
+        value: https://rating-university-1.onrender.com
       - key: NODE_ENV
         value: production
 
+# Managed Postgres databases
 databases:
   - name: rating-university-db
+    databaseName: rating_db
     plan: starter
     region: frankfurt
-    databaseName: rating_db
