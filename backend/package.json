@@ -8,7 +8,8 @@
     "start:prod": "npx prisma generate && node src/start.js",
     "test": "NODE_ENV=test jest --runInBand",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev --name init"
+    "prisma:migrate": "prisma migrate dev --name init",
+    "prisma:deploy": "prisma migrate deploy --schema ./prisma/schema.prisma"
   },
   "dependencies": {
     "@prisma/client": "^5.0.0",
