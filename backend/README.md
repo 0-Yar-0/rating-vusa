@@ -27,7 +27,11 @@
 
 1. Запушьте репозиторий на GitHub и добавьте два сервиса на Render: **Web Service** для бэкенда и **Static Site** для фронтенда (или используйте `render.yaml` для автоматического создания).
 
-2. Создайте или подключите экземпляр Postgres в Render (или используйте внешний DB). Скопируйте строку подключения (например: `postgres://user:pass@host:5432/dbname`).
+2. Создайте или подключите экземпляр Postgres (например, на Supabase или ElephantSQL) и получите строку подключения. Примеры:
+   - Supabase: `postgres://user:password@db.host.supabase.co:5432/postgres?sslmode=require`
+   - ElephantSQL: `postgres://user:password@your-host:5432/dbname?sslmode=require`
+
+   > Не используйте Render-managed Postgres, если не хотите привязывать платёжную карту; вместо этого добавьте внешний `DATABASE_URL` в переменные окружения сервиса на Render.
 
 3. Настройки сервиса бэкенда:
    - `Build Command`: `npm install`
