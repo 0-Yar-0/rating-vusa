@@ -20,16 +20,44 @@ app.set('trust proxy', 1);
 // Support multiple allowed client origins (comma-separated in CLIENT_ORIGIN)
 const CLIENT_ORIGINS = (process.env.CLIENT_ORIGIN || 'http://localhost:5173')
   .split(',')
-  .map((s) => s.trim())
+  .map((s) => s.trim().replace(/\/$/, '')) // remove trailing slash
   .filter(Boolean);
+
+function isOriginAllowed(origin) {
+  if (!origin) return true; // allow non-browser/server-to-server requests
+  const cleaned = origin.replace(/\/$/, '');
+  if (CLIENT_ORIGINS.includes('*')) return true;
+  if (CLIENT_ORIGINS.includes(cleaned)) return true;
+  try {
+    const url = new URL(cleaned);
+    const hostname = url.hostname; // e.g. my-app.onrender.com
+
+    // direct matches with host or origin
+    if (CLIENT_ORIGINS.includes(hostname)) return true;
+    if (CLIENT_ORIGINS.includes(url.origin)) return true;
+
+    // allow domain entries like `.example.com` to match subdomains
+    for (const allowed of CLIENT_ORIGINS) {
+      if (!allowed) continue;
+      if (allowed.startsWith('.')) {
+        if (hostname.endsWith(allowed)) return true;
+      }
+      // allow entries like 'example.com' to match subdomains
+      if (hostname === allowed || hostname.endsWith('.' + allowed)) return true;
+    }
+  } catch (e) {
+    // If parsing fails, fall back to strict compare (already checked)
+  }
+  return false;
+}
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow non-browser requests (curl, server-to-server) with no origin
       if (!origin) return callback(null, true);
-      if (CLIENT_ORIGINS.includes(origin)) return callback(null, true);
-      return callback(new Error('CORS policy does not allow access from the specified Origin.'), false);
+      if (isOriginAllowed(origin)) return callback(null, true);
+      console.warn('Blocked CORS origin:', origin, 'allowed:', CLIENT_ORIGINS);
+      return callback(new Error(`CORS policy does not allow access from the specified Origin: ${origin}`), false);
     },
     credentials: true,
   })
