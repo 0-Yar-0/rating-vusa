@@ -28,9 +28,8 @@ services:
         value: production
 
 
-  - type: static
+  - type: static_site
     name: rating-university-frontend
-    env: node
     root: rating-university-web
     region: frankfurt
     plan: free
