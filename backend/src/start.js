@@ -86,11 +86,13 @@ async function main() {
 
   // Ensure session table exists via a direct connection
   const { Pool } = require('pg');
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
   await ensureSessionTable(pool);
-  await pool.end();
 
-  // Start server
+  // Initialize app with the pool and start server
+  const { app, setupApp } = require('./index');
+  setupApp(pool);
+
   const PORT = process.env.PORT || 4000;
   app.listen(PORT, () => console.log(`Server listening on ${PORT}`));
 }

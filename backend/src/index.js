@@ -63,30 +63,37 @@ app.use(
   })
 );
 
-const pgPool = new (require('pg')).Pool({ connectionString: process.env.DATABASE_URL });
+// Session and DB pool are initialized lazily via setupApp to avoid parsing DATABASE_URL at module load
+let _pgPool = null;
+function setupApp(pool) {
+  if (!pool) throw new Error('setupApp requires a pg Pool instance');
+  _pgPool = pool;
 
-const cookieSameSite = process.env.COOKIE_SAME_SITE || (process.env.NODE_ENV === 'production' ? 'none' : 'lax');
-const cookieDomain = process.env.COOKIE_DOMAIN || undefined;
-const cookieSecure = process.env.COOKIE_SECURE ? process.env.COOKIE_SECURE === 'true' : process.env.NODE_ENV === 'production';
+  const cookieSameSite = process.env.COOKIE_SAME_SITE || (process.env.NODE_ENV === 'production' ? 'none' : 'lax');
+  const cookieDomain = process.env.COOKIE_DOMAIN || undefined;
+  const cookieSecure = process.env.COOKIE_SECURE ? process.env.COOKIE_SECURE === 'true' : process.env.NODE_ENV === 'production';
 
-const sessionMiddleware = session({
-  store: new pgSession({ pool: pgPool, tableName: 'session' }),
-  name: process.env.SESSION_COOKIE_NAME || 'sid',
-  secret: process.env.SESSION_SECRET || 'change-me',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-    secure: cookieSecure,
-    httpOnly: true,
-    sameSite: cookieSameSite,
-    domain: cookieDomain,
-  },
-});
+  const sessionMiddleware = session({
+    store: new pgSession({ pool: _pgPool, tableName: 'session' }),
+    name: process.env.SESSION_COOKIE_NAME || 'sid',
+    secret: process.env.SESSION_SECRET || 'change-me',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+      secure: cookieSecure,
+      httpOnly: true,
+      sameSite: cookieSameSite,
+      domain: cookieDomain,
+    },
+  });
 
-app.use(sessionMiddleware);
+  app.use(sessionMiddleware);
 
-app.use('/api/auth', authRoutes);
+  app.use('/api/auth', authRoutes);
+}
+
+module.exports = { app, setupApp };
 
 app.get('/', (req, res) => {
   const frontend = process.env.CLIENT_ORIGIN || '';
