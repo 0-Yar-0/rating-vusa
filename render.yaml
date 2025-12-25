@@ -7,15 +7,14 @@ previews:
 
 services:
   - type: web
-    env: node
+    runtime: docker
     name: rating-university-backend
     repo: https://github.com/0-Yar-0/rating-vusa
     rootDir: backend
     branch: main
     region: frankfurt
     plan: free
-    buildCommand: npm ci && npx prisma generate
-    startCommand: npm run start:prod
+    dockerfilePath: Dockerfile
     healthCheckPath: /health
     envVars:
       - key: AUTO_DB_PUSH
