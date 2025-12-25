@@ -18,6 +18,25 @@ async function ensureSessionTable(pgPool) {
   }
 }
 
+async function waitForDb(retries = 30, delayMs = 2000) {
+  const { Pool } = require('pg');
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  for (let i = 1; i <= retries; i++) {
+    try {
+      await pool.query('SELECT 1');
+      await pool.end();
+      console.log('Database is ready');
+      return true;
+    } catch (e) {
+      console.log(`Database not ready (attempt ${i}/${retries}): ${e.message}`);
+      await new Promise((r) => setTimeout(r, delayMs));
+    }
+  }
+  try { await pool.end(); } catch (e) {}
+  console.error('Database did not become ready in time');
+  return false;
+}
+
 async function runMigrations() {
   const autoMigrate = process.env.AUTO_MIGRATE === 'true';
   const autoPush = process.env.AUTO_DB_PUSH === 'true';
@@ -38,6 +57,13 @@ async function runMigrations() {
 }
 
 async function main() {
+  // Wait for DB to be ready
+  const ok = await waitForDb(30, 2000);
+  if (!ok) {
+    console.error('Exiting: database not ready');
+    process.exit(1);
+  }
+
   // Run migrations/push if configured
   await runMigrations();
 
