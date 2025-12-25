@@ -3,6 +3,7 @@ services:
   - type: web
     name: rating-university-backend
     env: node
+    root: backend
     region: frankfurt
     plan: free
     instanceSize: "starter"
@@ -21,10 +22,22 @@ services:
         value: none
       - key: COOKIE_SECURE
         value: 'true'
+      - key: NODE_ENV
+        value: production
+
+  - type: database
+    name: rating-university-db
+    plan: starter
+    databaseName: rating_db
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase: rating-university-db
+        # (Render will create and expose the connection string automatically when using a managed DB)
 
   - type: static
     name: rating-university-frontend
     env: node
+    root: rating-university-web
     region: frankfurt
     plan: free
     instanceSize: "starter"
@@ -35,3 +48,5 @@ services:
     envVars:
       - key: VITE_API_BASE
         value: https://<your-backend>.onrender.com
+      - key: NODE_ENV
+        value: production
