@@ -2,9 +2,6 @@
 # This file defines the backend web service, frontend static site, and a managed Postgres DB.
 # Update repo/branch values and secret placeholders before using.
 
-previews:
-  generation: automatic
-
 services:
   - type: web
     runtime: docker
