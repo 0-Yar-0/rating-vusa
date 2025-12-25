@@ -15,7 +15,7 @@ services:
       - key: AUTO_DB_PUSH
         value: 'true'
       - key: DATABASE_URL
-        value: <your-postgres-connection-string>
+        fromDatabase: rating-university-db
       - key: SESSION_SECRET
         value: <secure-secret>
       - key: CLIENT_ORIGIN
@@ -27,14 +27,6 @@ services:
       - key: NODE_ENV
         value: production
 
-  - type: database
-    name: rating-university-db
-    plan: starter
-    databaseName: rating_db
-    envVars:
-      - key: DATABASE_URL
-        fromDatabase: rating-university-db
-        # (Render will create and expose the connection string automatically when using a managed DB)
 
   - type: static
     name: rating-university-frontend
@@ -52,3 +44,9 @@ services:
         value: https://<your-backend>.onrender.com
       - key: NODE_ENV
         value: production
+
+databases:
+  - name: rating-university-db
+    plan: starter
+    region: frankfurt
+    databaseName: rating_db
