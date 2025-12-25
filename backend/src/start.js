@@ -20,7 +20,24 @@ async function ensureSessionTable(pgPool) {
 
 async function waitForDb(retries = 30, delayMs = 2000) {
   const { Pool } = require('pg');
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+  if (!process.env.DATABASE_URL) {
+    console.error('DATABASE_URL is not set. Set it in Render Environment or use Supabase and paste the connection string into DATABASE_URL. Exiting.');
+    return false;
+  }
+
+  // Provide an SSL fallback for hosts like Supabase which require TLS
+  const poolOptions = { connectionString: process.env.DATABASE_URL };
+  try {
+    const urlString = process.env.DATABASE_URL;
+    if (urlString.includes('sslmode=require') || process.env.NODE_ENV === 'production') {
+      poolOptions.ssl = { rejectUnauthorized: false };
+    }
+  } catch (err) {
+    // ignore parsing issues and continue with default options
+  }
+
+  const pool = new Pool(poolOptions);
   for (let i = 1; i <= retries; i++) {
     try {
       await pool.query('SELECT 1');
