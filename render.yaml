@@ -2,6 +2,9 @@
 # This file defines the backend web service, frontend static site, and a managed Postgres DB.
 # Update repo/branch values and secret placeholders before using.
 
+previews:
+  generation: automatic
+
 services:
   - type: web
     runtime: docker
@@ -11,13 +14,15 @@ services:
     branch: main
     region: frankfurt
     plan: free
-    buildCommand: npm install
+    dockerfilePath: Dockerfile
     healthCheckPath: /health
     envVars:
       - key: AUTO_DB_PUSH
         value: 'true'     # For first deployment; switch to AUTO_MIGRATE after committing migrations
-      # DATABASE_URL should point to an external Postgres if you prefer not to use Render-managed DB
-      # Example: add DATABASE_URL in Render Dashboard → Environment for the backend service
+      - key: DATABASE_URL
+        fromDatabase:
+          name: rating-university-db
+          property: connectionString
       - key: SESSION_SECRET
         generateValue: true
       - key: CLIENT_ORIGIN
@@ -43,7 +48,3 @@ services:
         value: https://rating-university-1.onrender.com
       - key: NODE_ENV
         value: production
-
-# NOTE: This configuration assumes you will use an external Postgres (e.g., Supabase or ElephantSQL)
-# to avoid adding payment information to Render. Add DATABASE_URL to the backend service's
-# Environment variables in the Render Dashboard pointing to your external DB connection string.
