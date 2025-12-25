@@ -14,27 +14,36 @@ async function ensureSessionTable(pgPool) {
     await pgPool.query(createSql);
     console.log('Ensured session table exists');
   } catch (e) {
-    console.warn('Could not ensure session table:', e.message);
+    console.warn('Could not ensure session table:', e.message, e && e.stack);
   }
 }
 
 async function waitForDb(retries = 30, delayMs = 2000) {
   const { Pool } = require('pg');
 
-  if (!process.env.DATABASE_URL) {
+  const rawDb = process.env.DATABASE_URL;
+  console.log('DATABASE_URL present:', !!rawDb, 'type:', typeof rawDb);
+  if (typeof rawDb === 'string') {
+    console.log('DATABASE_URL preview:', rawDb.slice(0, 80) + (rawDb.length > 80 ? '...' : ''));
+  } else if (!rawDb) {
     console.error('DATABASE_URL is not set. Set it in Render Environment or use Supabase and paste the connection string into DATABASE_URL. Exiting.');
+    return false;
+  } else {
+    console.error('DATABASE_URL has unexpected type:', typeof rawDb, 'value:', String(rawDb));
     return false;
   }
 
   // Provide an SSL fallback for hosts like Supabase which require TLS
-  const poolOptions = { connectionString: process.env.DATABASE_URL };
+  const poolOptions = { connectionString: rawDb };
   try {
-    const urlString = process.env.DATABASE_URL;
-    if (urlString.includes('sslmode=require') || process.env.NODE_ENV === 'production') {
+    if (rawDb.includes && rawDb.includes('sslmode=require')) {
+      poolOptions.ssl = { rejectUnauthorized: false };
+    } else if (process.env.NODE_ENV === 'production') {
+      // For production, enable SSL to be safe (rejectUnauthorized false to work with managed DBs)
       poolOptions.ssl = { rejectUnauthorized: false };
     }
   } catch (err) {
-    // ignore parsing issues and continue with default options
+    console.warn('Could not parse DATABASE_URL for SSL detection, proceeding without explicit ssl option:', err && err.message);
   }
 
   const pool = new Pool(poolOptions);
